@@ -22,6 +22,7 @@
  */
 package org.mattcarrier.erector.dao;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +32,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 
 import org.flywaydb.core.Flyway;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mattcarrier.erector.domain.PropertyGroup;
 import org.mattcarrier.erector.domain.PropertyGroup.Status;
@@ -49,32 +50,30 @@ import io.dropwizard.logging.BootstrapLogging;
 import io.dropwizard.setup.Environment;
 
 public class PropertyGroupDaoTest {
-    private final DataSourceFactory h2Config = new DataSourceFactory();
+    private static final DataSourceFactory h2Config = new DataSourceFactory();
 
-    {
+    private static final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
+    private static final LifecycleEnvironment lifecycleEnvironment = mock(LifecycleEnvironment.class);
+    private static final Environment environment = mock(Environment.class);
+    private static final DBIFactory factory = new DBIFactory();
+    private static final List<Managed> managed = new ArrayList<>();
+    private static final MetricRegistry metricRegistry = new MetricRegistry();
+    private static DBI dbi;
+
+    @BeforeClass
+    public static void setUp() throws Exception {
         BootstrapLogging.bootstrap();
         h2Config.setUrl("jdbc:h2:mem:JDBITest-" + System.currentTimeMillis());
         h2Config.setUser("sa");
         h2Config.setDriverClass("org.h2.Driver");
         h2Config.setValidationQuery("SELECT 1");
-    }
 
-    private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
-    private final LifecycleEnvironment lifecycleEnvironment = mock(LifecycleEnvironment.class);
-    private final Environment environment = mock(Environment.class);
-    private final DBIFactory factory = new DBIFactory();
-    private final List<Managed> managed = new ArrayList<>();
-    private final MetricRegistry metricRegistry = new MetricRegistry();
-    private DBI dbi;
-
-    @Before
-    public void setUp() throws Exception {
         when(environment.healthChecks()).thenReturn(healthChecks);
         when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
         when(environment.metrics()).thenReturn(metricRegistry);
         when(environment.getHealthCheckExecutorService()).thenReturn(Executors.newSingleThreadExecutor());
 
-        this.dbi = factory.build(environment, h2Config, "hsql");
+        dbi = factory.build(environment, h2Config, "hsql");
         final ArgumentCaptor<Managed> managedCaptor = ArgumentCaptor.forClass(Managed.class);
         verify(lifecycleEnvironment).manage(managedCaptor.capture());
         managed.addAll(managedCaptor.getAllValues());
@@ -93,6 +92,9 @@ public class PropertyGroupDaoTest {
         pg.setName("name");
         pg.setStatus(Status.ACTIVE);
         pg.setVersion("version");
-        dbi.onDemand(PropertyGroupDao.class).createPropertyGroup(pg);
+        final PropertyGroupDao dao = dbi.onDemand(PropertyGroupDao.class);
+        pg.setId(dao.createPropertyGroup(pg));
+
+        assertEquals(pg, dao.byId(pg.getId()));
     }
 }

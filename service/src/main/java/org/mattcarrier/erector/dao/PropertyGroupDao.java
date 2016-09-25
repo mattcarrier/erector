@@ -22,11 +22,21 @@
  */
 package org.mattcarrier.erector.dao;
 
+import org.mattcarrier.erector.dao.mapper.PropertyGroupMapper;
 import org.mattcarrier.erector.domain.PropertyGroup;
+import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.BindBean;
+import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
+import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
 
+@RegisterMapper(PropertyGroupMapper.class)
 public interface PropertyGroupDao {
     @SqlUpdate("INSERT INTO propertyGroup(name, status, version) VALUES(:name, :status, :version)")
-    public void createPropertyGroup(@BindBean PropertyGroup pg);
+    @GetGeneratedKeys
+    public long createPropertyGroup(@BindBean PropertyGroup pg);
+
+    @SqlQuery("SELECT * FROM propertyGroup WHERE id = :id")
+    public PropertyGroup byId(@Bind("id") Long id);
 }
