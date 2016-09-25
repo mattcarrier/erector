@@ -42,8 +42,7 @@ public class FileMeta {
     private String location;
 
     @NotNull
-    @Size(min = 1, max = 128)
-    private String propertyGroup;
+    private Long propertyGroupId;
 
     public Long getId() {
         return id;
@@ -69,17 +68,17 @@ public class FileMeta {
         this.location = location;
     }
 
-    public String getPropertyGroup() {
-        return propertyGroup;
+    public Long getPropertyGroupId() {
+        return propertyGroupId;
     }
 
-    public void setPropertyGroup(String propertyGroup) {
-        this.propertyGroup = propertyGroup;
+    public void setPropertyGroupId(Long propertyGroupId) {
+        this.propertyGroupId = propertyGroupId;
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hashCode(location, name, propertyGroup);
+        return Objects.hashCode(location, name, propertyGroupId);
     }
 
     @Override
@@ -90,12 +89,12 @@ public class FileMeta {
 
         final FileMeta that = (FileMeta) obj;
         return Objects.equal(this.location, that.location) && Objects.equal(this.name, that.name)
-                && Objects.equal(this.propertyGroup, that.propertyGroup);
+                && Objects.equal(this.propertyGroupId, that.propertyGroupId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this).add("id", id).add("location", location).add("name", name)
-                .add("propertyGroup", propertyGroup).toString();
+                .add("propertyGroupId", propertyGroupId).toString();
     }
 }

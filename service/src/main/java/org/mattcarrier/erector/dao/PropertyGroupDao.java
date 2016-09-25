@@ -20,31 +20,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.mattcarrier.erector.domain;
+package org.mattcarrier.erector.dao;
 
-import org.junit.Test;
+import org.mattcarrier.erector.domain.PropertyGroup;
+import org.skife.jdbi.v2.sqlobject.BindBean;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
-
-public class EqualsHashCodeTest {
-    @Test
-    public void fileMeta() {
-        EqualsVerifier.forClass(FileMeta.class).suppress(Warning.NONFINAL_FIELDS).withIgnoredFields("id").verify();
-    }
-
-    @Test
-    public void property() {
-        EqualsVerifier.forClass(Property.class).suppress(Warning.NONFINAL_FIELDS).withIgnoredFields("id").verify();
-    }
-
-    @Test
-    public void propertyGroup() {
-        EqualsVerifier.forClass(PropertyGroup.class).suppress(Warning.NONFINAL_FIELDS).withIgnoredFields("id").verify();
-    }
-
-    @Test
-    public void tag() {
-        EqualsVerifier.forClass(Tag.class).suppress(Warning.NONFINAL_FIELDS).withIgnoredFields("id").verify();
-    }
+public interface PropertyGroupDao {
+    @SqlUpdate("INSERT INTO propertyGroup(name, status, version) VALUES(:name, :status, :version)")
+    public void createPropertyGroup(@BindBean PropertyGroup pg);
 }

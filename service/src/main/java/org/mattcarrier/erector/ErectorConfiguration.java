@@ -20,31 +20,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.mattcarrier.erector.domain;
+package org.mattcarrier.erector;
 
-import org.junit.Test;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
-import nl.jqno.equalsverifier.Warning;
+import io.dropwizard.Configuration;
+import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.flyway.FlywayFactory;
 
-public class EqualsHashCodeTest {
-    @Test
-    public void fileMeta() {
-        EqualsVerifier.forClass(FileMeta.class).suppress(Warning.NONFINAL_FIELDS).withIgnoredFields("id").verify();
+public class ErectorConfiguration extends Configuration {
+    @Valid
+    @NotNull
+    private DataSourceFactory database = new DataSourceFactory();;
+
+    @Valid
+    @NotNull
+    private FlywayFactory flywayFactory = new FlywayFactory();
+
+    public DataSourceFactory getDatabase() {
+        return database;
     }
 
-    @Test
-    public void property() {
-        EqualsVerifier.forClass(Property.class).suppress(Warning.NONFINAL_FIELDS).withIgnoredFields("id").verify();
+    public void setDatabase(DataSourceFactory database) {
+        this.database = database;
     }
 
-    @Test
-    public void propertyGroup() {
-        EqualsVerifier.forClass(PropertyGroup.class).suppress(Warning.NONFINAL_FIELDS).withIgnoredFields("id").verify();
+    public FlywayFactory getFlywayFactory() {
+        return flywayFactory;
     }
 
-    @Test
-    public void tag() {
-        EqualsVerifier.forClass(Tag.class).suppress(Warning.NONFINAL_FIELDS).withIgnoredFields("id").verify();
+    public void setFlywayFactory(FlywayFactory flywayFactory) {
+        this.flywayFactory = flywayFactory;
     }
 }

@@ -37,6 +37,8 @@ public class PropertyGroup {
         ACTIVE, INACTIVE
     }
 
+    private Long id;
+
     @NotNull
     @Size(min = 1, max = 128)
     private String name;
@@ -48,6 +50,14 @@ public class PropertyGroup {
     @NotNull
     @Pattern(regexp = "^(IN)?ACTIVE$")
     private Status status;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -91,7 +101,7 @@ public class PropertyGroup {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("name", name).add("status", status).add("version", version)
-                .toString();
+        return MoreObjects.toStringHelper(this).add("id", id).add("name", name).add("status", status)
+                .add("version", version).toString();
     }
 }

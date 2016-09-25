@@ -45,8 +45,7 @@ public class Property {
     private String description;
 
     @NotNull
-    @Size(min = 1, max = 128)
-    private String propertyGroup;
+    private Long propertyGroupId;
 
     public Long getId() {
         return id;
@@ -80,17 +79,17 @@ public class Property {
         this.description = description;
     }
 
-    public String getPropertyGroup() {
-        return propertyGroup;
+    public Long getPropertyGroupId() {
+        return propertyGroupId;
     }
 
-    public void setPropertyGroup(String propertyGroup) {
-        this.propertyGroup = propertyGroup;
+    public void setPropertyGroupId(Long propertyGroupId) {
+        this.propertyGroupId = propertyGroupId;
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hashCode(key, value, description, propertyGroup);
+        return Objects.hashCode(key, value, description, propertyGroupId);
     }
 
     @Override
@@ -101,12 +100,12 @@ public class Property {
 
         final Property that = (Property) obj;
         return Objects.equal(this.description, that.description) && Objects.equal(this.key, that.key)
-                && Objects.equal(this.propertyGroup, that.propertyGroup) && Objects.equal(this.value, that.value);
+                && Objects.equal(this.propertyGroupId, that.propertyGroupId) && Objects.equal(this.value, that.value);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this).add("description", description).add("id", id).add("key", key)
-                .add("propertyGroup", propertyGroup).add("value", value).toString();
+                .add("propertyGroupId", propertyGroupId).add("value", value).toString();
     }
 }
