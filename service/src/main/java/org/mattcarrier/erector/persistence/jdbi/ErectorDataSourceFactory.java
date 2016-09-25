@@ -20,26 +20,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.mattcarrier.erector;
+package org.mattcarrier.erector.persistence.jdbi;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import io.dropwizard.db.PooledDataSourceFactory;
 
-import org.mattcarrier.erector.persistence.PersistenceFactory;
-import org.mattcarrier.erector.persistence.jdbi.JDBIPersistenceFactory;
+public interface ErectorDataSourceFactory extends PooledDataSourceFactory {
 
-import io.dropwizard.Configuration;
-
-public class ErectorConfiguration extends Configuration {
-    @Valid
-    @NotNull
-    private PersistenceFactory persistence = new JDBIPersistenceFactory();
-
-    public PersistenceFactory getPersistence() {
-        return persistence;
-    }
-
-    public void setPersistence(PersistenceFactory persistence) {
-        this.persistence = persistence;
-    }
 }

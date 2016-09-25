@@ -22,9 +22,17 @@
  */
 package org.mattcarrier.erector;
 
+import javax.sql.DataSource;
+
+import org.flywaydb.core.Flyway;
+
+import com.google.common.base.Optional;
+
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.db.DatabaseConfiguration;
 import io.dropwizard.flyway.FlywayBundle;
+import io.dropwizard.flyway.FlywayConfiguration;
 import io.dropwizard.flyway.FlywayFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
@@ -42,21 +50,51 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
     @Override
     public void initialize(Bootstrap<ErectorConfiguration> bootstrap) {
         bootstrap.addBundle(new FlywayBundle<ErectorConfiguration>() {
+            @Override
             public DataSourceFactory getDataSourceFactory(ErectorConfiguration configuration) {
-                return configuration.getDatabase();
+                final Optional<DataSourceFactory> dsFactory = dsFactory(configuration);
+                return dsFactory.isPresent() ? dsFactory.get() : null;
             }
 
             @Override
             public FlywayFactory getFlywayFactory(ErectorConfiguration configuration) {
-                return configuration.getFlywayFactory();
+                final Optional<FlywayFactory> flywayFactory = flywayFactory(configuration);
+                return flywayFactory.isPresent() ? flywayFactory.get() : null;
             }
         });
     }
 
     @Override
-    public void run(ErectorConfiguration configuration, Environment environment) throws Exception {
-        // TODO Auto-generated method stub
+    public void run(ErectorConfiguration configuration, Environment env) throws Exception {
+        final Optional<FlywayFactory> flywayFactory = flywayFactory(configuration);
+        final Optional<DataSourceFactory> dsFactory = dsFactory(configuration);
+        if (flywayFactory.isPresent() && dsFactory.isPresent()) {
+            final DataSource ds = dsFactory.get().build(env.metrics(), "flyway");
+            final Flyway flyway = flywayFactory.get().build(ds);
+            flyway.migrate();
+            ds.getConnection().close();
+        }
 
+        configuration.getPersistence().initialize(env);
+        configuration.getPersistence().propertyGroupDao();
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Optional<DataSourceFactory> dsFactory(ErectorConfiguration configuration) {
+        if (!(configuration instanceof DatabaseConfiguration)) {
+            return Optional.absent();
+        }
+
+        return Optional
+                .of((DataSourceFactory) ((DatabaseConfiguration) configuration).getDataSourceFactory(configuration));
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Optional<FlywayFactory> flywayFactory(ErectorConfiguration configuration) {
+        if (!(configuration instanceof FlywayConfiguration)) {
+            return Optional.absent();
+        }
+
+        return Optional.of((FlywayFactory) ((FlywayConfiguration) configuration).getFlywayFactory(configuration));
+    }
 }

@@ -20,26 +20,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.mattcarrier.erector;
+package org.mattcarrier.erector.persistence;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.mattcarrier.erector.persistence.PersistenceFactory;
+import org.mattcarrier.erector.dao.PropertyGroupDao;
 import org.mattcarrier.erector.persistence.jdbi.JDBIPersistenceFactory;
 
-import io.dropwizard.Configuration;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-public class ErectorConfiguration extends Configuration {
-    @Valid
-    @NotNull
-    private PersistenceFactory persistence = new JDBIPersistenceFactory();
+import io.dropwizard.jackson.Discoverable;
+import io.dropwizard.setup.Environment;
 
-    public PersistenceFactory getPersistence() {
-        return persistence;
-    }
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = JDBIPersistenceFactory.class)
+public interface PersistenceFactory extends Discoverable {
+    public void initialize(Environment env);
 
-    public void setPersistence(PersistenceFactory persistence) {
-        this.persistence = persistence;
-    }
+    public PropertyGroupDao propertyGroupDao();
 }
