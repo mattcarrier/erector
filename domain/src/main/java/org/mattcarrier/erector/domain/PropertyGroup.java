@@ -23,6 +23,7 @@
 package org.mattcarrier.erector.domain;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import com.google.common.base.MoreObjects;
@@ -30,83 +31,67 @@ import com.google.common.base.Objects;
 
 import io.swagger.annotations.ApiModel;
 
-@ApiModel(description = "A singular property")
-public class Property {
-    private Long id;
+@ApiModel(description = "A grouping of properties and files")
+public class PropertyGroup {
+    public enum Status {
+        ACTIVE, INACTIVE
+    }
 
     @NotNull
     @Size(min = 1, max = 128)
-    private String key;
-
-    @Size(max = 1024)
-    private String value;
-
-    @Size(max = 512)
-    private String description;
+    private String name;
 
     @NotNull
     @Size(min = 1, max = 128)
-    private String propertyGroup;
+    private String version;
 
-    public Long getId() {
-        return id;
+    @NotNull
+    @Pattern(regexp = "^(IN)?ACTIVE$")
+    private Status status;
+
+    public String getName() {
+        return name;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getKey() {
-        return key;
+    public String getVersion() {
+        return version;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
-    public String getValue() {
-        return value;
+    public Status getStatus() {
+        return status;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getPropertyGroup() {
-        return propertyGroup;
-    }
-
-    public void setPropertyGroup(String propertyGroup) {
-        this.propertyGroup = propertyGroup;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hashCode(key, value, description, propertyGroup);
+        return Objects.hashCode(name, status, version);
     }
 
     @Override
     public final boolean equals(Object obj) {
-        if (!(obj instanceof Property)) {
+        if (!(obj instanceof PropertyGroup)) {
             return false;
         }
 
-        final Property that = (Property) obj;
-        return Objects.equal(this.description, that.description) && Objects.equal(this.key, that.key)
-                && Objects.equal(this.propertyGroup, that.propertyGroup) && Objects.equal(this.value, that.value);
+        final PropertyGroup that = (PropertyGroup) obj;
+        return Objects.equal(this.name, that.name) && Objects.equal(this.status, that.status)
+                && Objects.equal(this.version, that.version);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("description", description).add("id", id).add("key", key)
-                .add("propertyGroup", propertyGroup).add("value", value).toString();
+        return MoreObjects.toStringHelper(this).add("name", name).add("status", status).add("version", version)
+                .toString();
     }
 }

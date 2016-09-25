@@ -30,23 +30,16 @@ import com.google.common.base.Objects;
 
 import io.swagger.annotations.ApiModel;
 
-@ApiModel(description = "A singular property")
-public class Property {
+@ApiModel(description = "Queryable attribute on a PropertyGroup")
+public class Tag {
     private Long id;
 
     @NotNull
     @Size(min = 1, max = 128)
     private String key;
 
-    @Size(max = 1024)
+    @Size(max = 128)
     private String value;
-
-    @Size(max = 512)
-    private String description;
-
-    @NotNull
-    @Size(min = 1, max = 128)
-    private String propertyGroup;
 
     public Long getId() {
         return id;
@@ -72,41 +65,23 @@ public class Property {
         this.value = value;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getPropertyGroup() {
-        return propertyGroup;
-    }
-
-    public void setPropertyGroup(String propertyGroup) {
-        this.propertyGroup = propertyGroup;
-    }
-
     @Override
     public final int hashCode() {
-        return Objects.hashCode(key, value, description, propertyGroup);
+        return Objects.hashCode(key, value);
     }
 
     @Override
     public final boolean equals(Object obj) {
-        if (!(obj instanceof Property)) {
+        if (!(obj instanceof Tag)) {
             return false;
         }
 
-        final Property that = (Property) obj;
-        return Objects.equal(this.description, that.description) && Objects.equal(this.key, that.key)
-                && Objects.equal(this.propertyGroup, that.propertyGroup) && Objects.equal(this.value, that.value);
+        final Tag that = (Tag) obj;
+        return Objects.equal(this.key, that.key) && Objects.equal(this.value, that.value);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("description", description).add("id", id).add("key", key)
-                .add("propertyGroup", propertyGroup).add("value", value).toString();
+        return MoreObjects.toStringHelper(this).add("id", id).add("key", key).add("value", value).toString();
     }
 }

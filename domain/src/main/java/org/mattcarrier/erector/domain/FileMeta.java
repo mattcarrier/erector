@@ -30,19 +30,16 @@ import com.google.common.base.Objects;
 
 import io.swagger.annotations.ApiModel;
 
-@ApiModel(description = "A singular property")
-public class Property {
+@ApiModel(description = "Meta information for a file")
+public class FileMeta {
     private Long id;
 
     @NotNull
     @Size(min = 1, max = 128)
-    private String key;
+    private String name;
 
-    @Size(max = 1024)
-    private String value;
-
-    @Size(max = 512)
-    private String description;
+    @Size(min = 1, max = 128)
+    private String location;
 
     @NotNull
     @Size(min = 1, max = 128)
@@ -56,28 +53,20 @@ public class Property {
         this.id = id;
     }
 
-    public String getKey() {
-        return key;
+    public String getName() {
+        return name;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getValue() {
-        return value;
+    public String getLocation() {
+        return location;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public String getPropertyGroup() {
@@ -90,23 +79,23 @@ public class Property {
 
     @Override
     public final int hashCode() {
-        return Objects.hashCode(key, value, description, propertyGroup);
+        return Objects.hashCode(location, name, propertyGroup);
     }
 
     @Override
     public final boolean equals(Object obj) {
-        if (!(obj instanceof Property)) {
+        if (!(obj instanceof FileMeta)) {
             return false;
         }
 
-        final Property that = (Property) obj;
-        return Objects.equal(this.description, that.description) && Objects.equal(this.key, that.key)
-                && Objects.equal(this.propertyGroup, that.propertyGroup) && Objects.equal(this.value, that.value);
+        final FileMeta that = (FileMeta) obj;
+        return Objects.equal(this.location, that.location) && Objects.equal(this.name, that.name)
+                && Objects.equal(this.propertyGroup, that.propertyGroup);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("description", description).add("id", id).add("key", key)
-                .add("propertyGroup", propertyGroup).add("value", value).toString();
+        return MoreObjects.toStringHelper(this).add("id", id).add("location", location).add("name", name)
+                .add("propertyGroup", propertyGroup).toString();
     }
 }
