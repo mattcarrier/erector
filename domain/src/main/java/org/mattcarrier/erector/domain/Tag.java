@@ -23,9 +23,9 @@
 package org.mattcarrier.erector.domain;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import io.swagger.annotations.ApiModel;
@@ -35,7 +35,7 @@ public class Tag {
     private Long id;
 
     @NotNull
-    @Size(min = 1, max = 128)
+    @Pattern(regexp = "[0-9,a-z,A-Z_]{1,64}")
     private String key;
 
     @Size(max = 128)
@@ -77,11 +77,16 @@ public class Tag {
         }
 
         final Tag that = (Tag) obj;
-        return Objects.equal(this.key, that.key) && Objects.equal(this.value, that.value);
+        return Objects.equal(null == this.key ? null : this.key.toUpperCase(),
+                null == that.key ? null : that.key.toUpperCase()) && Objects.equal(this.value, that.value);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this).add("id", id).add("key", key).add("value", value).toString();
+        final StringBuilder bldr = new StringBuilder(key);
+        bldr.append(" = '");
+        bldr.append(value);
+        bldr.append("'");
+        return bldr.toString();
     }
 }

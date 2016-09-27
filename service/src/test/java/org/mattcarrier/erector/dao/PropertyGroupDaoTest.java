@@ -23,78 +23,134 @@
 package org.mattcarrier.erector.dao;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 
-import org.flywaydb.core.Flyway;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.mattcarrier.erector.domain.PropertyGroup;
+import org.mattcarrier.erector.domain.Tag;
 import org.mattcarrier.erector.domain.PropertyGroup.Status;
-import org.mockito.ArgumentCaptor;
-import org.skife.jdbi.v2.DBI;
 
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.health.HealthCheckRegistry;
+import com.google.common.collect.ImmutableList;
 
-import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.jdbi.DBIFactory;
-import io.dropwizard.lifecycle.Managed;
-import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
-import io.dropwizard.logging.BootstrapLogging;
-import io.dropwizard.setup.Environment;
+public class PropertyGroupDaoTest extends AbstractDaoTest {
+    private PropertyGroupDao dao;
+    private TagDao tagDao;
 
-public class PropertyGroupDaoTest {
-    private static final DataSourceFactory h2Config = new DataSourceFactory();
+    private PropertyGroup pg;
+    private PropertyGroup pgInactive;
+    private PropertyGroup pgVersion2;
+    private PropertyGroup pgName2;
 
-    private static final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
-    private static final LifecycleEnvironment lifecycleEnvironment = mock(LifecycleEnvironment.class);
-    private static final Environment environment = mock(Environment.class);
-    private static final DBIFactory factory = new DBIFactory();
-    private static final List<Managed> managed = new ArrayList<>();
-    private static final MetricRegistry metricRegistry = new MetricRegistry();
-    private static DBI dbi;
+    private Tag t;
+    private Tag t2;
 
-    @BeforeClass
-    public static void setUp() throws Exception {
-        BootstrapLogging.bootstrap();
-        h2Config.setUrl("jdbc:h2:mem:JDBITest-" + System.currentTimeMillis());
-        h2Config.setUser("sa");
-        h2Config.setDriverClass("org.h2.Driver");
-        h2Config.setValidationQuery("SELECT 1");
+    @Before
+    public void setup() {
+        dao = dbi.onDemand(PropertyGroupDao.class);
+        tagDao = dbi.onDemand(TagDao.class);
 
-        when(environment.healthChecks()).thenReturn(healthChecks);
-        when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
-        when(environment.metrics()).thenReturn(metricRegistry);
-        when(environment.getHealthCheckExecutorService()).thenReturn(Executors.newSingleThreadExecutor());
-
-        dbi = factory.build(environment, h2Config, "hsql");
-        final ArgumentCaptor<Managed> managedCaptor = ArgumentCaptor.forClass(Managed.class);
-        verify(lifecycleEnvironment).manage(managedCaptor.capture());
-        managed.addAll(managedCaptor.getAllValues());
-        for (Managed obj : managed) {
-            obj.start();
-        }
-
-        final Flyway flyway = new Flyway();
-        flyway.setDataSource(h2Config.build(metricRegistry, "flyway"));
-        flyway.migrate();
-    }
-
-    @Test
-    public void createPropertyGroup() {
-        final PropertyGroup pg = new PropertyGroup();
+        pg = new PropertyGroup();
         pg.setName("name");
         pg.setStatus(Status.ACTIVE);
         pg.setVersion("version");
-        final PropertyGroupDao dao = dbi.onDemand(PropertyGroupDao.class);
         pg.setId(dao.createPropertyGroup(pg));
 
+        pgInactive = new PropertyGroup();
+        pgInactive.setName("name");
+        pgInactive.setStatus(Status.INACTIVE);
+        pgInactive.setVersion("version");
+        pgInactive.setId(dao.createPropertyGroup(pgInactive));
+
+        pgVersion2 = new PropertyGroup();
+        pgVersion2.setName("name");
+        pgVersion2.setStatus(Status.ACTIVE);
+        pgVersion2.setVersion("version2");
+        pgVersion2.setId(dao.createPropertyGroup(pgVersion2));
+
+        pgName2 = new PropertyGroup();
+        pgName2.setName("name2");
+        pgName2.setStatus(Status.ACTIVE);
+        pgName2.setVersion("version");
+        pgName2.setId(dao.createPropertyGroup(pgName2));
+
+        t = new Tag();
+        t.setKey("testTag");
+        t.setValue("value");
+        tagDao.createTagDomain(t.getKey());
+
+        t2 = new Tag();
+        t2.setKey("testTag");
+        t2.setValue("value");
+
+        t.setId(tagDao.addTag(t.getKey(), t.getValue()));
+        tagDao.associateTag(t.getId(), pg.getId());
+
+        t2.setId(tagDao.addTag(t2.getKey(), t2.getValue()));
+        tagDao.associateTag(t2.getId(), pgInactive.getId());
+    }
+
+    @After
+    public void tearDown() {
+        final ImmutableList<Long> tagIds = ImmutableList.of(t.getId(), t2.getId());
+        tagDao.disassociateAllTags(tagIds);
+        tagDao.removeAllTags(tagIds);
+        tagDao.deleteTagDomain(t.getKey());
+
+        dao.deletePropertyGroup(pg);
+        dao.deletePropertyGroup(pgInactive);
+        dao.deletePropertyGroup(pgVersion2);
+        dao.deletePropertyGroup(pgName2);
+    }
+
+    @Test
+    public void update() {
+        pg.setName("differentname");
+        pg.setStatus(Status.INACTIVE);
+        pg.setVersion("version2");
+        assertEquals(1, dao.updatePropertyGroup(pg));
         assertEquals(pg, dao.byId(pg.getId()));
+    }
+
+    @Test
+    public void byId() {
+        assertEquals(pg, dao.byId(pg.getId()));
+    }
+
+    @Test
+    public void byName() {
+        final List<PropertyGroup> groups = dao.byName(pg.getName());
+        assertEquals(3, groups.size());
+        assertEquals(pg, groups.iterator().next());
+    }
+
+    @Test
+    public void byNameAndVersion() {
+        final List<PropertyGroup> groups = dao.byNameAndVersion(pg.getName(), pg.getVersion());
+        assertEquals(2, groups.size());
+        assertEquals(pg, groups.iterator().next());
+    }
+
+    @Test
+    public void byNameAndStatus() {
+        final List<PropertyGroup> groups = dao.byNameAndStatus(pg.getName(), pg.getStatus());
+        assertEquals(2, groups.size());
+        assertEquals(pg, groups.iterator().next());
+    }
+
+    @Test
+    public void byNameVersionAndStatus() {
+        final List<PropertyGroup> groups = dao.byNameVersionAndStatus(pg.getName(), pg.getVersion(), pg.getStatus());
+        assertEquals(1, groups.size());
+        assertEquals(pg, groups.iterator().next());
+    }
+
+    @Test
+    public void byNameVersionAndTags() {
+        final List<PropertyGroup> groups = dao.byNameVersionAndTags(pg.getName(), pg.getVersion(), ImmutableList.of(t));
+        assertEquals(2, groups.size());
+        assertEquals(pg, groups.iterator().next());
     }
 }

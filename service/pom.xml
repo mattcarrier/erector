@@ -39,6 +39,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>stringtemplate</artifactId>
+      <version>3.2</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>org.mattcarrier.erector</groupId>
       <artifactId>erector-domain</artifactId>
       <version>${project.version}</version>

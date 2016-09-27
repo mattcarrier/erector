@@ -25,8 +25,16 @@ CREATE TABLE PropertyGroup (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   name varchar(128) NOT NULL,
   version varchar(128) NOT NULL,
-  status varchar(64) NOT NULL,
-  CONSTRAINT uq_propertyGroup UNIQUE (name, version)
+  status varchar(64) NOT NULL
+);
+
+CREATE TABLE PropertyGroupXref (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  parentId BIGINT NOT NULL,
+  dependentId BIGINT NOT NULL,
+  CONSTRAINT uq_propertyGroupXref UNIQUE (parentId, dependentId),
+  CONSTRAINT fk_propertyGroupXrefParentId FOREIGN KEY (parentId) REFERENCES PropertyGroup(id),
+  CONSTRAINT fk_propertyGroupXrefDependentId FOREIGN KEY (dependentId) REFERENCES PropertyGroup(id)
 );
 
 CREATE TABLE Property (
@@ -50,8 +58,7 @@ CREATE TABLE FileMeta (
 
 CREATE TABLE Tag (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  key varchar(128) NOT NULL,
-  value varchar(512)
+  doNotDelete varchar(128)
 );
 
 CREATE TABLE TagPropertyGroupXref (
