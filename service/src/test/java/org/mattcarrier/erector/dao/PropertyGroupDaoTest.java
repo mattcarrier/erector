@@ -34,6 +34,7 @@ import org.mattcarrier.erector.domain.Tag;
 import org.mattcarrier.erector.domain.PropertyGroup.Status;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 public class PropertyGroupDaoTest extends AbstractDaoTest {
     private PropertyGroupDao dao;
@@ -121,36 +122,61 @@ public class PropertyGroupDaoTest extends AbstractDaoTest {
 
     @Test
     public void byName() {
-        final List<PropertyGroup> groups = dao.byName(pg.getName());
+        final List<PropertyGroup> groups = dao.filterNoTags(ImmutableMap.of("name", pg.getName()),
+                ImmutableList.of("status", "id"));
         assertEquals(3, groups.size());
         assertEquals(pg, groups.iterator().next());
     }
 
     @Test
     public void byNameAndVersion() {
-        final List<PropertyGroup> groups = dao.byNameAndVersion(pg.getName(), pg.getVersion());
+        final List<PropertyGroup> groups = dao.filterNoTags(
+                ImmutableMap.of("name", pg.getName(), "version", pg.getVersion()), ImmutableList.of("status", "id"));
         assertEquals(2, groups.size());
         assertEquals(pg, groups.iterator().next());
     }
 
     @Test
     public void byNameAndStatus() {
-        final List<PropertyGroup> groups = dao.byNameAndStatus(pg.getName(), pg.getStatus());
+        final List<PropertyGroup> groups = dao.filterNoTags(
+                ImmutableMap.of("name", pg.getName(), "status", pg.getStatus().toString()),
+                ImmutableList.of("status", "id"));
         assertEquals(2, groups.size());
         assertEquals(pg, groups.iterator().next());
     }
 
     @Test
     public void byNameVersionAndStatus() {
-        final List<PropertyGroup> groups = dao.byNameVersionAndStatus(pg.getName(), pg.getVersion(), pg.getStatus());
+        final List<PropertyGroup> groups = dao.filterNoTags(
+                ImmutableMap.of("name", pg.getName(), "status", pg.getStatus().toString(), "version", pg.getVersion()),
+                ImmutableList.of("status", "id"));
         assertEquals(1, groups.size());
         assertEquals(pg, groups.iterator().next());
     }
 
     @Test
     public void byNameVersionAndTags() {
-        final List<PropertyGroup> groups = dao.byNameVersionAndTags(pg.getName(), pg.getVersion(), ImmutableList.of(t));
+        final List<PropertyGroup> groups = dao.filterWithTags(
+                (ImmutableMap.of("name", pg.getName(), "version", pg.getVersion())), ImmutableList.of("status", "id"),
+                ImmutableList.of(t));
         assertEquals(2, groups.size());
         assertEquals(pg, groups.iterator().next());
+    }
+
+    @Test
+    public void pagingAll() {
+        final List<PropertyGroup> groups = dao.filterNoTags(
+                (ImmutableMap.of("name", pg.getName(), "start", "0", "limit", String.valueOf(Integer.MAX_VALUE))),
+                ImmutableList.of("status", "id"));
+        assertEquals(3, groups.size());
+        assertEquals(pg, groups.iterator().next());
+    }
+
+    @Test
+    public void paging() {
+        final List<PropertyGroup> groups = dao.filterNoTags(
+                (ImmutableMap.of("name", pg.getName(), "start", "1", "limit", "1")), ImmutableList.of("status", "id"));
+        assertEquals(1, groups.size());
+        assertEquals(pgVersion2, groups.iterator().next());
     }
 }

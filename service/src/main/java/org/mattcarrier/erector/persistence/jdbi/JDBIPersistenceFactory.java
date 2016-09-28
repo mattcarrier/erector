@@ -26,7 +26,9 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.mattcarrier.erector.ErectorConfiguration;
+import org.mattcarrier.erector.dao.PropertyDao;
 import org.mattcarrier.erector.dao.PropertyGroupDao;
+import org.mattcarrier.erector.dao.TagDao;
 import org.mattcarrier.erector.persistence.PersistenceFactory;
 import org.skife.jdbi.v2.DBI;
 
@@ -64,6 +66,16 @@ public class JDBIPersistenceFactory implements PersistenceFactory, DatabaseConfi
     @Override
     public PropertyGroupDao propertyGroupDao() {
         return jdbi.onDemand(PropertyGroupDao.class);
+    }
+
+    @Override
+    public TagDao tagDao() {
+        return jdbi.onDemand(TagDao.class);
+    }
+
+    @Override
+    public PropertyDao propertyDao() {
+        return jdbi.onDemand(PropertyDao.class);
     }
 
     @Override

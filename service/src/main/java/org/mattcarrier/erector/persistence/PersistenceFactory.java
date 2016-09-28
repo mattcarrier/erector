@@ -22,7 +22,9 @@
  */
 package org.mattcarrier.erector.persistence;
 
+import org.mattcarrier.erector.dao.PropertyDao;
 import org.mattcarrier.erector.dao.PropertyGroupDao;
+import org.mattcarrier.erector.dao.TagDao;
 import org.mattcarrier.erector.persistence.jdbi.JDBIPersistenceFactory;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -34,5 +36,7 @@ import io.dropwizard.setup.Environment;
 public interface PersistenceFactory extends Discoverable {
     public void initialize(Environment env);
 
+    public TagDao tagDao();
+    public PropertyDao propertyDao();
     public PropertyGroupDao propertyGroupDao();
 }

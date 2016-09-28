@@ -58,6 +58,8 @@ public abstract class AbstractDaoTest {
         h2Config.setDriverClass("org.h2.Driver");
         h2Config.setValidationQuery("SELECT 1");
 
+        System.out.println(h2Config.getUrl());
+
         when(environment.healthChecks()).thenReturn(healthChecks);
         when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
         when(environment.metrics()).thenReturn(metricRegistry);
