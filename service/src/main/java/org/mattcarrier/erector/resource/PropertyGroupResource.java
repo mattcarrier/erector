@@ -26,13 +26,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.ws.rs.GET;
@@ -49,7 +49,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.mattcarrier.erector.api.PagedResponse;
 import org.mattcarrier.erector.dao.PropertyGroupDao;
+import org.mattcarrier.erector.dao.Sort;
+import org.mattcarrier.erector.dao.Sort.Direction;
 import org.mattcarrier.erector.domain.PropertyGroup;
 import org.mattcarrier.erector.domain.Tag;
 
@@ -88,17 +91,24 @@ public class PropertyGroupResource {
     }
 
     @GET
-    public List<PropertyGroup> filter(@Context UriInfo uriInfo) {
+    public PagedResponse<PropertyGroup> filter(@Context UriInfo uriInfo) {
         final MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         final Map<String, String> bindings = new HashMap<>();
         bindings.put("start", "0");
         bindings.put("limit", String.valueOf(Integer.MAX_VALUE));
 
-        final List<String> sorts;
+        final List<Sort> sorts;
         if (null == queryParams.get("sort")) {
-            sorts = ImmutableList.of("status", "id");
+            sorts = ImmutableList.of(new Sort("status"), new Sort("id"));
         } else {
-            sorts = queryParams.get("sort");
+            sorts = queryParams.get("sort").stream().map(s -> {
+                if (!s.contains(" ")) {
+                    return new Sort(s);
+                }
+
+                final String[] split = s.split(" ");
+                return new Sort(split[0], Direction.valueOf(split[1].toUpperCase()));
+            }).collect(Collectors.toList());
         }
 
         final Set<Tag> tags = new HashSet<>();
@@ -119,10 +129,14 @@ public class PropertyGroupResource {
             tags.add(t);
         }
 
+        final int start = Integer.valueOf(bindings.get("start"));
+        final int limit = Integer.valueOf(bindings.get("limit"));
         if (tags.isEmpty()) {
-            return pgDao.filterNoTags(bindings, sorts);
+            final int total = pgDao.filterNoTagsCount(bindings);
+            return new PagedResponse<>(pgDao.filterNoTags(bindings, sorts), start / limit, limit, total);
         }
 
-        return pgDao.filterWithTags(bindings, sorts, tags);
+        final int total = pgDao.filterWithTagsCount(bindings, tags);
+        return new PagedResponse<>(pgDao.filterWithTags(bindings, sorts, tags), start / limit, limit, total);
     }
 }

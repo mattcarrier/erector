@@ -71,7 +71,21 @@ public interface PropertyGroupDao {
               "LIMIT :limit")
 //@formatter:on
     public List<PropertyGroup> filterNoTags(@BindMap({ "id", "id", "name", "name", "version", "version", "status",
-            "status", "start", "limit" }) Map<String, String> bindings, @Define("sorts") List<String> sorts);
+            "status", "start", "limit" }) Map<String, String> bindings, @Define("sorts") List<Sort> sorts);
+
+//@formatter:off
+    @SqlQuery("SELECT " +
+                "COUNT(1) " +
+              "FROM " +
+                "PropertyGroup p " +
+              "WHERE " +
+                "(p.id = :id OR NULL IS :id) AND " +
+                "(p.name = :name OR NULL IS :name) AND " +
+                "(p.version = :version OR NULL IS :version) AND " +
+                "(p.status = :status OR NULL IS :status)")
+//@formatter:on
+    public int filterNoTagsCount(@BindMap({ "id", "id", "name", "name", "version", "version", "status",
+            "status" }) Map<String, String> bindings);
 
 //@formatter:off
     @SqlQuery("SELECT " +
@@ -94,5 +108,22 @@ public interface PropertyGroupDao {
     public List<PropertyGroup> filterWithTags(
             @BindMap({ "id", "id", "name", "name", "version", "version", "status", "status", "start",
                     "limit" }) Map<String, String> bindings,
-            @Define("sorts") List<String> sorts, @Define("tags") Collection<Tag> tags);
+            @Define("sorts") List<Sort> sorts, @Define("tags") Collection<Tag> tags);
+
+//@formatter:off
+    @SqlQuery("SELECT " +
+                "COUNT(1) " +
+              "FROM " +
+                "PropertyGroup p INNER JOIN " +
+                "TagPropertyGroupXref x ON p.id = x.propertyGroupId INNER JOIN " +
+                "Tag t ON x.tagId = t.Id " +
+              "WHERE " +
+                "(p.id = :id OR NULL IS :id) AND " +
+                "(p.name = :name OR NULL IS :name) AND " +
+                "(p.version = :version OR NULL IS :version) AND " +
+                "(p.status = :status OR NULL IS :status) AND " +
+                "t.<tags; separator=\" AND t.\">")
+//@formatter:on
+    public int filterWithTagsCount(@BindMap({ "id", "id", "name", "name", "version", "version",
+            "status", "status", "start", "limit" }) Map<String, String> bindings, @Define("tags") Collection<Tag> tags);
 }

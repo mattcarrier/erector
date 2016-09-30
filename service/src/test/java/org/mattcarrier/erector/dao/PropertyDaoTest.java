@@ -27,11 +27,13 @@ import static org.junit.Assert.assertEquals;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mattcarrier.erector.dao.Sort.Direction;
 import org.mattcarrier.erector.domain.Property;
 import org.mattcarrier.erector.domain.PropertyGroup;
 import org.mattcarrier.erector.domain.PropertyGroup.Status;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 public class PropertyDaoTest extends AbstractDaoTest {
     private PropertyDao dao;
@@ -69,17 +71,17 @@ public class PropertyDaoTest extends AbstractDaoTest {
         p.setId(dao.createProperty(p));
 
         p2 = new Property();
-        p2.setDescription("description");
+        p2.setDescription("description2");
         p2.setKey("key2");
         p2.setPropertyGroupId(pg.getId());
-        p2.setValue("value");
+        p2.setValue("value2");
         p2.setId(dao.createProperty(p2));
 
         p3 = new Property();
-        p3.setDescription("description");
+        p3.setDescription("description3");
         p3.setKey("key");
         p3.setPropertyGroupId(pg2.getId());
-        p3.setValue("value");
+        p3.setValue("value3");
         p3.setId(dao.createProperty(p3));
     }
 
@@ -104,7 +106,63 @@ public class PropertyDaoTest extends AbstractDaoTest {
     }
 
     @Test
-    public void byPropertyGroup() {
-        assertEquals(ImmutableList.of(p, p2), dao.byPropertyGroupId(pg.getId()));
+    public void filterById() {
+        assertEquals(ImmutableList.of(p),
+                dao.filter(ImmutableMap.of("id", String.valueOf(p.getId())), ImmutableList.of(new Sort("id"))));
+    }
+
+    @Test
+    public void filterByDescription() {
+        assertEquals(ImmutableList.of(p),
+                dao.filter(ImmutableMap.of("description", p.getDescription()), ImmutableList.of(new Sort("id"))));
+    }
+
+    @Test
+    public void filterByKey() {
+        assertEquals(ImmutableList.of(p, p3),
+                dao.filter(ImmutableMap.of("key", p.getKey()), ImmutableList.of(new Sort("id"))));
+    }
+
+    @Test
+    public void filterByPropertyGroup() {
+        assertEquals(ImmutableList.of(p, p2), dao.filter(ImmutableMap.of("propertyGroupId", String.valueOf(pg.getId())),
+                ImmutableList.of(new Sort("id"))));
+    }
+
+    @Test
+    public void pagingAll() {
+        assertEquals(ImmutableList.of(p, p3),
+                dao.filter(ImmutableMap.of("key", p.getKey(), "start", "0", "limit", String.valueOf(Integer.MAX_VALUE)),
+                        ImmutableList.of(new Sort("id"))));
+    }
+
+    @Test
+    public void paging() {
+        assertEquals(ImmutableList.of(p3), dao.filter(ImmutableMap.of("key", p.getKey(), "start", "1", "limit", "1"),
+                ImmutableList.of(new Sort("id"))));
+    }
+
+    @Test
+    public void sortByKey() {
+        assertEquals(ImmutableList.of(p, p3, p2),
+                dao.filter(ImmutableMap.of(), ImmutableList.of(new Sort("key"), new Sort("id"))));
+    }
+
+    @Test
+    public void sortByValue() {
+        assertEquals(ImmutableList.of(p, p2, p3),
+                dao.filter(ImmutableMap.of(), ImmutableList.of(new Sort("value"), new Sort("id"))));
+    }
+
+    @Test
+    public void sortByDescription() {
+        assertEquals(ImmutableList.of(p3, p2, p), dao.filter(ImmutableMap.of(),
+                ImmutableList.of(new Sort("description", Direction.DESC), new Sort("id"))));
+    }
+
+    @Test
+    public void sortByPropertyGroupId() {
+        assertEquals(ImmutableList.of(p3, p2, p), dao.filter(ImmutableMap.of(),
+                ImmutableList.of(new Sort("description", Direction.DESC), new Sort("id"))));
     }
 }

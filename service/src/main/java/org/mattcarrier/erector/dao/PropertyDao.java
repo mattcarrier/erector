@@ -23,16 +23,21 @@
 package org.mattcarrier.erector.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.mattcarrier.erector.dao.mapper.PropertyMapper;
 import org.mattcarrier.erector.domain.Property;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.BindBean;
+import org.skife.jdbi.v2.sqlobject.BindMap;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
+@UseStringTemplate3StatementLocator
 @RegisterMapper(PropertyMapper.class)
 public interface PropertyDao {
     @SqlUpdate("INSERT INTO Property(key, value, description, propertyGroupId) VALUES(:key, :value, :description, :propertyGroupId)")
@@ -48,6 +53,24 @@ public interface PropertyDao {
     @SqlQuery("SELECT id, key, value, description, propertyGroupId FROM Property WHERE id = :id")
     public Property byId(@Bind("id") Long id);
 
-    @SqlQuery("SELECT id, key, value, description, propertyGroupId FROM Property WHERE propertyGroupId = :propertyGroupId")
-    public List<Property> byPropertyGroupId(@Bind("propertyGroupId") Long propertyGroupId);
+//@formatter:off
+    @SqlQuery("SELECT " +
+                "id, key, value, description, propertyGroupId " +
+              "FROM " +
+                "Property " +
+              "WHERE " +
+                "(id = :id OR NULL IS :id) AND " +
+                "(key = :key OR NULL IS :key) AND " +
+                "(value = :value OR NULL IS :value) AND " +
+                "(description = :description OR NULL IS :description) AND " +
+                "(propertyGroupId = :propertyGroupId OR NULL IS :propertyGroupId) " +
+              "ORDER BY " +
+                "<sorts; separator=\",\"> " +
+              "OFFSET :start " +
+              "LIMIT :limit")
+//@formatter:on
+    public List<Property> filter(
+            @BindMap({ "id", "id", "key", "key", "value", "value", "description", "description", "propertyGroupId",
+                    "propertyGroupId", "start", "limit" }) Map<String, String> bindings,
+            @Define("sorts") List<Sort> sorts);
 }
