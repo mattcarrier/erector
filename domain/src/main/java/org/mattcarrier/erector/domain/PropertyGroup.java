@@ -23,7 +23,6 @@
 package org.mattcarrier.erector.domain;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import com.google.common.base.MoreObjects;
@@ -48,7 +47,6 @@ public class PropertyGroup {
     private String version;
 
     @NotNull
-    @Pattern(regexp = "^(IN)?ACTIVE$")
     private Status status;
 
     public Long getId() {

@@ -35,11 +35,23 @@ public class ErectorConfiguration extends Configuration {
     @NotNull
     private PersistenceFactory persistence = new JDBIPersistenceFactory();
 
+    @Valid
+    @NotNull
+    private ErectorSwaggerBundleConfiguration swagger = new ErectorSwaggerBundleConfiguration();
+
     public PersistenceFactory getPersistence() {
         return persistence;
     }
 
     public void setPersistence(PersistenceFactory persistence) {
         this.persistence = persistence;
+    }
+
+    public ErectorSwaggerBundleConfiguration getSwagger() {
+        return swagger;
+    }
+
+    public void setSwagger(ErectorSwaggerBundleConfiguration swagger) {
+        this.swagger = swagger;
     }
 }

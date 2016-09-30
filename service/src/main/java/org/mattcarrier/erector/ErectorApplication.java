@@ -25,6 +25,7 @@ package org.mattcarrier.erector;
 import javax.sql.DataSource;
 
 import org.flywaydb.core.Flyway;
+import org.mattcarrier.erector.resource.PropertyGroupResource;
 
 import com.google.common.base.Optional;
 
@@ -36,6 +37,8 @@ import io.dropwizard.flyway.FlywayConfiguration;
 import io.dropwizard.flyway.FlywayFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.federecio.dropwizard.swagger.SwaggerBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 
 public class ErectorApplication extends Application<ErectorConfiguration> {
     public static void main(String[] args) throws Exception {
@@ -49,6 +52,12 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
 
     @Override
     public void initialize(Bootstrap<ErectorConfiguration> bootstrap) {
+        bootstrap.addBundle(new SwaggerBundle<ErectorConfiguration>() {
+            @Override
+            protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(ErectorConfiguration configuration) {
+                return configuration.getSwagger().buildSwaggerBundleConfiguration();
+            }
+        });
         bootstrap.addBundle(new FlywayBundle<ErectorConfiguration>() {
             @Override
             public DataSourceFactory getDataSourceFactory(ErectorConfiguration configuration) {
@@ -76,7 +85,7 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
         }
 
         configuration.getPersistence().initialize(env);
-        configuration.getPersistence().propertyGroupDao();
+        env.jersey().register(new PropertyGroupResource(configuration.getPersistence().propertyGroupDao()));
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

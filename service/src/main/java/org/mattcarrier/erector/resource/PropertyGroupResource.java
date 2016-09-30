@@ -56,8 +56,14 @@ import org.mattcarrier.erector.dao.Sort.Direction;
 import org.mattcarrier.erector.domain.PropertyGroup;
 import org.mattcarrier.erector.domain.Tag;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.ResponseHeader;
 import jersey.repackaged.com.google.common.collect.ImmutableList;
 
+@Api
 @Path("/erector/api/v1/propertygroups")
 @Produces(MediaType.APPLICATION_JSON)
 public class PropertyGroupResource {
@@ -68,6 +74,9 @@ public class PropertyGroupResource {
     }
 
     @POST
+    @ApiOperation("Creates a PropertyGroup")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Created", responseHeaders = @ResponseHeader(name = "location", description = "location of created resource") ) })
     public Response create(@Valid PropertyGroup pg) throws URISyntaxException {
         if (null != pg.getId()) {
             throw new WebApplicationException("PropertyGroup already exists.", Status.CONFLICT);
@@ -78,6 +87,10 @@ public class PropertyGroupResource {
 
     @PUT
     @Path("/{id}")
+    @ApiOperation(value = "Updates a PropertyGroup", notes = "PropertyGroup must already be created")
+    @ApiResponses({ @ApiResponse(code = 204, message = "Updated Successfully"),
+            @ApiResponse(code = 400, message = "PropertyGroup is not persisted"),
+            @ApiResponse(code = 404, message = "PropertyGroup not found") })
     public Response update(@PathParam("id") Long id, @Valid PropertyGroup pg) {
         if (null == pg.getId() || !id.equals(pg.getId())) {
             throw new WebApplicationException("PropertyGroup is not persisted.", Status.BAD_REQUEST);
@@ -91,6 +104,7 @@ public class PropertyGroupResource {
     }
 
     @GET
+    @ApiOperation(value = "Search for PropertyGroups", notes = "All fields area available for filtering and sortering as well as start and limit for pagination", response = PagedResponse.class, responseContainer = "List")
     public PagedResponse<PropertyGroup> filter(@Context UriInfo uriInfo) {
         final MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         final Map<String, String> bindings = new HashMap<>();

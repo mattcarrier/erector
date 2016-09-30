@@ -40,6 +40,7 @@
 
     <dropwizard-flyway.version>1.0.0-1</dropwizard-flyway.version>
     <dropwizard-jdbi.version>1.0.2</dropwizard-jdbi.version>
+    <dropwizard-swagger.version>1.0.0-1</dropwizard-swagger.version>
     <equalsverifier.version>2.1.5</equalsverifier.version>
     <guava.version>19.0</guava.version>
     <h2.version>1.4.192</h2.version>
@@ -70,6 +71,11 @@
         <groupId>io.dropwizard</groupId>
         <artifactId>dropwizard-jdbi</artifactId>
         <version>${dropwizard-jdbi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.smoketurner</groupId>
+        <artifactId>dropwizard-swagger</artifactId>
+        <version>${dropwizard-swagger.version}</version>
       </dependency>
       <dependency>
         <groupId>io.swagger</groupId>

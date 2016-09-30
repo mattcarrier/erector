@@ -63,6 +63,16 @@
       <artifactId>dropwizard-jdbi</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.smoketurner</groupId>
+      <artifactId>dropwizard-swagger</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>jsr305</artifactId>
+          <groupId>com.google.code.findbugs</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
