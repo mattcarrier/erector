@@ -27,11 +27,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -54,10 +52,9 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.mattcarrier.erector.api.PagedResponse;
-import org.mattcarrier.erector.dao.PropertyGroupDao;
+import org.mattcarrier.erector.dao.PropertyDao;
 import org.mattcarrier.erector.dao.Sort;
-import org.mattcarrier.erector.domain.PropertyGroup;
-import org.mattcarrier.erector.domain.Tag;
+import org.mattcarrier.erector.domain.Property;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -66,42 +63,42 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ResponseHeader;
 import jersey.repackaged.com.google.common.collect.ImmutableList;
 
-@Api("propertygroups")
-@Path("/erector/api/v1/propertygroups")
+@Api("properties")
+@Path("/erector/api/v1/properties")
 @Produces(MediaType.APPLICATION_JSON)
-public class PropertyGroupResource {
-    private final PropertyGroupDao pgDao;
+public class PropertyResource {
+    private final PropertyDao propDao;
 
-    public PropertyGroupResource(PropertyGroupDao pgDao) {
-        this.pgDao = checkNotNull(pgDao);
+    public PropertyResource(PropertyDao propDao) {
+        this.propDao = checkNotNull(propDao);
     }
 
     @POST
-    @ApiOperation("Creates a PropertyGroup")
+    @ApiOperation("Creates a Property")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Created", responseHeaders = @ResponseHeader(name = "location", description = "location of created resource") ) })
-    public Response create(@Valid PropertyGroup pg) throws URISyntaxException {
-        if (null != pg.getId()) {
-            throw new WebApplicationException("PropertyGroup already exists.", Status.CONFLICT);
+    public Response create(@Valid Property p) throws URISyntaxException {
+        if (null != p.getId()) {
+            throw new WebApplicationException("Property already exists.", Status.CONFLICT);
         }
 
-        return Response.created(new URI("/erector/api/v1/propertygroups/" + pgDao.createPropertyGroup(pg)))
+        return Response.created(new URI("/erector/api/v1/properties/" + propDao.createProperty(p)))
                 .type(MediaType.APPLICATION_JSON).build();
     }
 
     @PUT
     @Path("/{id}")
-    @ApiOperation(value = "Updates a PropertyGroup", notes = "PropertyGroup must already be created")
+    @ApiOperation(value = "Updates a Property", notes = "Property must already be created")
     @ApiResponses({ @ApiResponse(code = 204, message = "Updated Successfully"),
-            @ApiResponse(code = 400, message = "PropertyGroup is not persisted"),
-            @ApiResponse(code = 404, message = "PropertyGroup not found") })
-    public Response update(@PathParam("id") Long id, @Valid PropertyGroup pg) {
-        if (null == pg.getId() || !id.equals(pg.getId())) {
-            throw new WebApplicationException("PropertyGroup is not persisted.", Status.BAD_REQUEST);
+            @ApiResponse(code = 400, message = "Property is not persisted"),
+            @ApiResponse(code = 404, message = "Property not found") })
+    public Response update(@PathParam("id") Long id, @Valid Property p) throws URISyntaxException {
+        if (null == p.getId() || !id.equals(p.getId())) {
+            throw new WebApplicationException("Property is not persisted.", Status.BAD_REQUEST);
         }
 
-        if (0 == pgDao.updatePropertyGroup(pg)) {
-            throw new WebApplicationException("PropertyGroup Not Found", Status.NOT_FOUND);
+        if (0 == propDao.updateProperty(p)) {
+            throw new WebApplicationException("Property Not Found", Status.NOT_FOUND);
         }
 
         return Response.noContent().type(MediaType.APPLICATION_JSON).build();
@@ -109,12 +106,12 @@ public class PropertyGroupResource {
 
     @DELETE
     @Path("/{id}")
-    @ApiOperation(value = "Deletes a PropertyGroup")
+    @ApiOperation(value = "Deletes a Property")
     @ApiResponses({ @ApiResponse(code = 204, message = "Deletion Successfully"),
-            @ApiResponse(code = 404, message = "PropertyGroup not found") })
+            @ApiResponse(code = 404, message = "Property not found") })
     public Response delete(@PathParam("id") Long id) {
-        if (0 == pgDao.deletePropertyGroup(id)) {
-            throw new WebApplicationException("PropertyGroup Not Found", Status.NOT_FOUND);
+        if (0 == propDao.deleteProperty(id)) {
+            throw new WebApplicationException("Property Not Found", Status.NOT_FOUND);
         }
 
         return Response.noContent().type(MediaType.APPLICATION_JSON).build();
@@ -122,20 +119,20 @@ public class PropertyGroupResource {
 
     @GET
     @Path("/{id}")
-    @ApiOperation(value = "Gets a PropertyGroup by ID")
-    @ApiResponse(code = 404, message = "PropertyGroup not found")
-    public PropertyGroup byId(@PathParam("id") Long id) {
-        final PropertyGroup pg = pgDao.byId(id);
-        if (null == pg) {
-            throw new NotFoundException("PropertyGroup not found");
+    @ApiOperation(value = "Gets a Property by ID")
+    @ApiResponse(code = 404, message = "Property not found")
+    public Property byId(@PathParam("id") Long id) {
+        final Property p = propDao.byId(id);
+        if (null == p) {
+            throw new NotFoundException("Property not found");
         }
 
-        return pg;
+        return p;
     }
 
     @GET
-    @ApiOperation(value = "Search for PropertyGroups", notes = "All fields area available for filtering and sortering as well as start and limit for pagination", response = PropertyGroup.class, responseContainer = "List")
-    public PagedResponse<PropertyGroup> filter(@Context UriInfo uriInfo,
+    @ApiOperation(value = "Search for Properties", notes = "All fields area available for filtering and sortering as well as start and limit for pagination", response = Property.class, responseContainer = "List")
+    public PagedResponse<Property> filter(@Context UriInfo uriInfo,
             @QueryParam("limit") @DefaultValue("50") @Min(1) Integer limit,
             @QueryParam("start") @DefaultValue("0") Integer start, @QueryParam("sort") List<Sort> sorts) {
         final MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
@@ -144,10 +141,9 @@ public class PropertyGroupResource {
         bindings.put("limit", String.valueOf(limit));
 
         if (sorts.isEmpty()) {
-            sorts = ImmutableList.of(new Sort("status"), new Sort("id"));
+            sorts = ImmutableList.of(new Sort("id"));
         }
 
-        final Set<Tag> tags = new HashSet<>();
         for (Entry<String, List<String>> e : queryParams.entrySet()) {
             final String key = e.getKey();
             if (e.getValue().isEmpty() || bindings.containsKey(key) || e.getKey().equals("sort") || key.equals("start")
@@ -155,23 +151,10 @@ public class PropertyGroupResource {
                 continue;
             }
 
-            if (key.equals("name") || key.equals("version") || key.equals("status")) {
-                bindings.put(key, e.getValue().get(0));
-                continue;
-            }
-
-            final Tag t = new Tag();
-            t.setKey(key);
-            t.setValue(e.getValue().get(0));
-            tags.add(t);
+            bindings.put(key, e.getValue().get(0));
         }
 
-        if (tags.isEmpty()) {
-            final int total = pgDao.filterNoTagsCount(bindings);
-            return new PagedResponse<>(pgDao.filterNoTags(bindings, sorts), start / limit, limit, total);
-        }
-
-        final int total = pgDao.filterWithTagsCount(bindings, tags);
-        return new PagedResponse<>(pgDao.filterWithTags(bindings, sorts, tags), start / limit, limit, total);
+        final int total = propDao.filterCount(bindings);
+        return new PagedResponse<>(propDao.filter(bindings, sorts), start / limit, limit, total);
     }
 }

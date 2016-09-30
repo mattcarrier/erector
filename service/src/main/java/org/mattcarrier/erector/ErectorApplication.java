@@ -25,13 +25,16 @@ package org.mattcarrier.erector;
 import javax.sql.DataSource;
 
 import org.flywaydb.core.Flyway;
+import org.mattcarrier.erector.persistence.PersistenceFactory;
 import org.mattcarrier.erector.resource.PropertyGroupResource;
+import org.mattcarrier.erector.resource.PropertyResource;
 
 import com.google.common.base.Optional;
 
 import io.dropwizard.Application;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.DatabaseConfiguration;
+import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.flyway.FlywayBundle;
 import io.dropwizard.flyway.FlywayConfiguration;
 import io.dropwizard.flyway.FlywayFactory;
@@ -86,24 +89,33 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
 
         configuration.getPersistence().initialize(env);
         env.jersey().register(new PropertyGroupResource(configuration.getPersistence().propertyGroupDao()));
+        env.jersey().register(new PropertyResource(configuration.getPersistence().propertyDao()));
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Optional<DataSourceFactory> dsFactory(ErectorConfiguration configuration) {
-        if (!(configuration instanceof DatabaseConfiguration)) {
+        final PersistenceFactory persistence = configuration.getPersistence();
+        if (!(persistence instanceof DatabaseConfiguration)) {
             return Optional.absent();
         }
 
+        final PooledDataSourceFactory dsFactory = ((DatabaseConfiguration) persistence)
+                .getDataSourceFactory(configuration);
+        if (dsFactory instanceof DataSourceFactory) {
+            return Optional.of((DataSourceFactory) dsFactory);
+        }
+
         return Optional
-                .of((DataSourceFactory) ((DatabaseConfiguration) configuration).getDataSourceFactory(configuration));
+                .of((DataSourceFactory) ((DatabaseConfiguration) persistence).getDataSourceFactory(configuration));
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Optional<FlywayFactory> flywayFactory(ErectorConfiguration configuration) {
-        if (!(configuration instanceof FlywayConfiguration)) {
+        final PersistenceFactory persistence = configuration.getPersistence();
+        if (!(persistence instanceof FlywayConfiguration)) {
             return Optional.absent();
         }
 
-        return Optional.of((FlywayFactory) ((FlywayConfiguration) configuration).getFlywayFactory(configuration));
+        return Optional.of((FlywayFactory) ((FlywayConfiguration) persistence).getFlywayFactory(configuration));
     }
 }

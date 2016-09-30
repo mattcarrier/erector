@@ -48,7 +48,7 @@ public interface PropertyDao {
     public int updateProperty(@BindBean Property p);
 
     @SqlUpdate("DELETE Property WHERE id = :id")
-    public int deleteProperty(@BindBean Property p);
+    public int deleteProperty(@Bind("id") Long id);
 
     @SqlQuery("SELECT id, key, value, description, propertyGroupId FROM Property WHERE id = :id")
     public Property byId(@Bind("id") Long id);
@@ -73,4 +73,19 @@ public interface PropertyDao {
             @BindMap({ "id", "id", "key", "key", "value", "value", "description", "description", "propertyGroupId",
                     "propertyGroupId", "start", "limit" }) Map<String, String> bindings,
             @Define("sorts") List<Sort> sorts);
+
+//@formatter:off
+    @SqlQuery("SELECT " +
+                "COUNT(1) " +
+              "FROM " +
+                "Property " +
+              "WHERE " +
+                "(id = :id OR NULL IS :id) AND " +
+                "(key = :key OR NULL IS :key) AND " +
+                "(value = :value OR NULL IS :value) AND " +
+                "(description = :description OR NULL IS :description) AND " +
+                "(propertyGroupId = :propertyGroupId OR NULL IS :propertyGroupId)")
+//@formatter:on
+    public int filterCount(@BindMap({ "id", "id", "key", "key", "value", "value", "description",
+            "description", "propertyGroupId", "propertyGroupId", "start", "limit" }) Map<String, String> bindings);
 }

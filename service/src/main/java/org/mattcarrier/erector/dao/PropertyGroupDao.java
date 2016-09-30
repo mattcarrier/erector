@@ -50,7 +50,7 @@ public interface PropertyGroupDao {
     public int updatePropertyGroup(@BindBean PropertyGroup pg);
 
     @SqlUpdate("DELETE PropertyGroup WHERE id = :id")
-    public int deletePropertyGroup(@BindBean PropertyGroup pg);
+    public int deletePropertyGroup(@Bind("id") Long id);
 
     @SqlQuery("SELECT id, name, status, version FROM PropertyGroup WHERE id = :id")
     public PropertyGroup byId(@Bind("id") Long id);
@@ -124,6 +124,6 @@ public interface PropertyGroupDao {
                 "(p.status = :status OR NULL IS :status) AND " +
                 "t.<tags; separator=\" AND t.\">")
 //@formatter:on
-    public int filterWithTagsCount(@BindMap({ "id", "id", "name", "name", "version", "version",
-            "status", "status", "start", "limit" }) Map<String, String> bindings, @Define("tags") Collection<Tag> tags);
+    public int filterWithTagsCount(@BindMap({ "id", "id", "name", "name", "version", "version", "status", "status",
+            "start", "limit" }) Map<String, String> bindings, @Define("tags") Collection<Tag> tags);
 }

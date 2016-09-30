@@ -76,7 +76,7 @@ public class TagDaoTest extends AbstractDaoTest {
         dao.disassociateAllTags(tagIds);
         dao.removeAllTags(tagIds);
         dao.deleteTagDomain(t.getKey());
-        pgDao.deletePropertyGroup(pg);
+        pgDao.deletePropertyGroup(pg.getId());
     }
 
     @Test

@@ -34,6 +34,7 @@ import org.skife.jdbi.v2.DBI;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.DatabaseConfiguration;
 import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.flyway.FlywayConfiguration;
@@ -49,7 +50,7 @@ public class JDBIPersistenceFactory implements PersistenceFactory, DatabaseConfi
 
     @Valid
     @NotNull
-    private ErectorDataSourceFactory database = new H2InMemoryDataSourceFactory();
+    private DataSourceFactory database = new H2InMemoryDataSourceFactory().buildDataSourceFactory();
 
     @Valid
     @NotNull

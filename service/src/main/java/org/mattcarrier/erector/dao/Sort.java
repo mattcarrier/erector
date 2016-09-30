@@ -34,8 +34,15 @@ public class Sort {
     private final String field;
     private final Direction direction;
 
-    public Sort(String field) {
-        this(field, Direction.ASC);
+    public Sort(String sort) {
+        if (!sort.contains(" ")) {
+            this.field = sort;
+            this.direction = Direction.ASC;
+        } else {
+            final String[] split = sort.split(" ");
+            this.field = split[0];
+            this.direction = Direction.valueOf(split[1].toUpperCase());
+        }
     }
 
     public Sort(String field, Direction direction) {

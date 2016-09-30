@@ -100,10 +100,10 @@ public class PropertyGroupDaoTest extends AbstractDaoTest {
         tagDao.removeAllTags(tagIds);
         tagDao.deleteTagDomain(t.getKey());
 
-        dao.deletePropertyGroup(pg);
-        dao.deletePropertyGroup(pgInactive);
-        dao.deletePropertyGroup(pgVersion2);
-        dao.deletePropertyGroup(pgName2);
+        dao.deletePropertyGroup(pg.getId());
+        dao.deletePropertyGroup(pgInactive.getId());
+        dao.deletePropertyGroup(pgVersion2.getId());
+        dao.deletePropertyGroup(pgName2.getId());
     }
 
     @Test

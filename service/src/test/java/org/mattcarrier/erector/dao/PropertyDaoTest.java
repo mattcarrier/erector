@@ -87,12 +87,12 @@ public class PropertyDaoTest extends AbstractDaoTest {
 
     @After
     public void tearDown() {
-        dao.deleteProperty(p);
-        dao.deleteProperty(p2);
-        dao.deleteProperty(p3);
+        dao.deleteProperty(p.getId());
+        dao.deleteProperty(p2.getId());
+        dao.deleteProperty(p3.getId());
 
-        pgDao.deletePropertyGroup(pg);
-        pgDao.deletePropertyGroup(pg2);
+        pgDao.deletePropertyGroup(pg.getId());
+        pgDao.deletePropertyGroup(pg2.getId());
     }
 
     @Test
