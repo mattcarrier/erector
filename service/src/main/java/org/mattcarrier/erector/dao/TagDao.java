@@ -24,6 +24,7 @@ package org.mattcarrier.erector.dao;
 
 import java.util.Collection;
 
+import org.mattcarrier.erector.dao.mapper.TagDomainMapper;
 import org.mattcarrier.erector.dao.mapper.TagMapper;
 import org.mattcarrier.erector.domain.Tag;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -36,9 +37,9 @@ import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLoc
 import org.skife.jdbi.v2.unstable.BindIn;
 
 @UseStringTemplate3StatementLocator
-@RegisterMapper(TagMapper.class)
+@RegisterMapper({ TagMapper.class, TagDomainMapper.class })
 public interface TagDao {
-    @SqlUpdate("ALTER TABLE Tag ADD COLUMN <key> VARCHAR(128)")
+    @SqlUpdate("ALTER TABLE Tag ADD COLUMN <key> VARCHAR(128); CREATE INDEX indexTag<key> ON Tag(<key>)")
     public void createTagDomain(@Define("key") String key);
 
     @SqlUpdate("ALTER TABLE Tag DROP COLUMN <key>")
@@ -63,6 +64,9 @@ public interface TagDao {
 
     @SqlUpdate("DELETE FROM Tag WHERE id IN (<tagIds>)")
     public int removeAllTags(@BindIn("tagIds") Collection<Long> tagIds);
+
+    @SqlQuery("SELECT * FROM Tag WHERE doNotDelete = '1' LIMIT 1")
+    public TagDomain getTagDomain();
 
     @SqlQuery("SELECT * FROM Tag WHERE id = :id")
     public Tag byId(@Bind("id") Long id);

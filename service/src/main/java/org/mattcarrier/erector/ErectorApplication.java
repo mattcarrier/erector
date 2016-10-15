@@ -25,9 +25,11 @@ package org.mattcarrier.erector;
 import javax.sql.DataSource;
 
 import org.flywaydb.core.Flyway;
+import org.h2.tools.Server;
 import org.mattcarrier.erector.persistence.PersistenceFactory;
 import org.mattcarrier.erector.resource.PropertyGroupResource;
 import org.mattcarrier.erector.resource.PropertyResource;
+import org.mattcarrier.erector.resource.TagResource;
 
 import com.google.common.base.Optional;
 
@@ -78,8 +80,11 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
 
     @Override
     public void run(ErectorConfiguration configuration, Environment env) throws Exception {
+
         final Optional<FlywayFactory> flywayFactory = flywayFactory(configuration);
         final Optional<DataSourceFactory> dsFactory = dsFactory(configuration);
+        System.out.println(dsFactory.get().getUrl());
+        Server.createWebServer("-web").start();
         if (flywayFactory.isPresent() && dsFactory.isPresent()) {
             final DataSource ds = dsFactory.get().build(env.metrics(), "flyway");
             final Flyway flyway = flywayFactory.get().build(ds);
@@ -90,6 +95,7 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
         configuration.getPersistence().initialize(env);
         env.jersey().register(new PropertyGroupResource(configuration.getPersistence().propertyGroupDao()));
         env.jersey().register(new PropertyResource(configuration.getPersistence().propertyDao()));
+        env.jersey().register(new TagResource(configuration.getPersistence().tagDao()));
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

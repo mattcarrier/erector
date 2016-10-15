@@ -20,34 +20,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.mattcarrier.erector.dao.mapper;
+package org.mattcarrier.erector.dao;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.mattcarrier.erector.domain.Tag;
-import org.skife.jdbi.v2.StatementContext;
-import org.skife.jdbi.v2.tweak.ResultSetMapper;
+import java.util.List;
+import java.util.Objects;
 
-public class TagMapper implements ResultSetMapper<Tag> {
+import com.google.common.base.MoreObjects;
+
+public class TagDomain {
+    private List<String> domain;
+
+    public TagDomain() {
+    }
+
+    public TagDomain(List<String> domain) {
+        this.domain = checkNotNull(domain);
+    }
+
+    public List<String> getDomain() {
+        return domain;
+    }
+
+    public void setDomain(List<String> domain) {
+        this.domain = domain;
+    }
+
     @Override
-    public Tag map(int index, ResultSet rs, StatementContext ctxt) throws SQLException {
-        final Tag t = new Tag();
-        final ResultSetMetaData md = rs.getMetaData();
+    public final int hashCode() {
+        return Objects.hash(domain);
+    }
 
-        t.setId(rs.getLong("id"));
-        for (int i = 1; i <= md.getColumnCount(); i++) {
-            final String val = rs.getString(i);
-            if (null != val && !("doNotDelete".equalsIgnoreCase(md.getColumnName(i)))
-                    && !("id".equalsIgnoreCase(md.getColumnName(i)))) {
-                t.setKey(md.getColumnName(i));
-                t.setValue(rs.getString(i));
-
-                return t;
-            }
+    @Override
+    public final boolean equals(Object obj) {
+        if (!(obj instanceof TagDomain)) {
+            return false;
         }
 
-        throw new RuntimeException("Tag[" + t.getId() + "] has no value");
+        final TagDomain that = (TagDomain) obj;
+        return Objects.equals(this.getDomain(), that.getDomain());
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).add("domain", domain).toString();
     }
 }

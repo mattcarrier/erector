@@ -26,28 +26,26 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import org.mattcarrier.erector.domain.Tag;
+import org.mattcarrier.erector.dao.TagDomain;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-public class TagMapper implements ResultSetMapper<Tag> {
+import com.google.common.collect.ImmutableSortedSet;
+
+public class TagDomainMapper implements ResultSetMapper<TagDomain> {
     @Override
-    public Tag map(int index, ResultSet rs, StatementContext ctxt) throws SQLException {
-        final Tag t = new Tag();
+    public TagDomain map(int index, ResultSet rs, StatementContext ctxt) throws SQLException {
         final ResultSetMetaData md = rs.getMetaData();
-
-        t.setId(rs.getLong("id"));
+        final ImmutableSortedSet.Builder<String> domain = ImmutableSortedSet.naturalOrder();
         for (int i = 1; i <= md.getColumnCount(); i++) {
-            final String val = rs.getString(i);
-            if (null != val && !("doNotDelete".equalsIgnoreCase(md.getColumnName(i)))
-                    && !("id".equalsIgnoreCase(md.getColumnName(i)))) {
-                t.setKey(md.getColumnName(i));
-                t.setValue(rs.getString(i));
-
-                return t;
+            final String column = md.getColumnName(i);
+            if ("id".equalsIgnoreCase(column) || ("doNotDelete".equalsIgnoreCase(column))) {
+                continue;
             }
+
+            domain.add(column);
         }
 
-        throw new RuntimeException("Tag[" + t.getId() + "] has no value");
+        return new TagDomain(domain.build().asList());
     }
 }

@@ -58,8 +58,10 @@ CREATE TABLE FileMeta (
 
 CREATE TABLE Tag (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  doNotDelete varchar(128)
+  doNotDelete varchar(128) NOT NULL DEFAULT '0'
 );
+
+INSERT INTO TAG(doNotDelete) VALUES(1);
 
 CREATE TABLE TagPropertyGroupXref (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
