@@ -96,8 +96,8 @@ public class PropertyGroupDaoTest extends AbstractDaoTest {
     @After
     public void tearDown() {
         final ImmutableList<Long> tagIds = ImmutableList.of(t.getId(), t2.getId());
-        tagDao.disassociateAllTags(tagIds);
-        tagDao.removeAllTags(tagIds);
+        tagDao.disassociateTags(tagIds);
+        tagDao.removeTags(tagIds);
         tagDao.deleteTagDomain(t.getKey());
 
         dao.deletePropertyGroup(pg.getId());

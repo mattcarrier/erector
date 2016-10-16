@@ -73,8 +73,8 @@ public class TagDaoTest extends AbstractDaoTest {
     @After
     public void tearDown() {
         final ImmutableList<Long> tagIds = ImmutableList.of(t.getId(), t2.getId());
-        dao.disassociateAllTags(tagIds);
-        dao.removeAllTags(tagIds);
+        dao.disassociateTags(tagIds);
+        dao.removeTags(tagIds);
         dao.deleteTagDomain(t.getKey());
         pgDao.deletePropertyGroup(pg.getId());
     }

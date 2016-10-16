@@ -26,11 +26,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Set;
 
 import javax.validation.Valid;
@@ -56,6 +58,7 @@ import javax.ws.rs.core.UriInfo;
 import org.mattcarrier.erector.api.PagedResponse;
 import org.mattcarrier.erector.dao.PropertyGroupDao;
 import org.mattcarrier.erector.dao.Sort;
+import org.mattcarrier.erector.dao.TagDao;
 import org.mattcarrier.erector.domain.PropertyGroup;
 import org.mattcarrier.erector.domain.Tag;
 
@@ -71,19 +74,19 @@ import jersey.repackaged.com.google.common.collect.ImmutableList;
 @Produces(MediaType.APPLICATION_JSON)
 public class PropertyGroupResource {
     private final PropertyGroupDao pgDao;
+    private final TagDao tagDao;
 
-    public PropertyGroupResource(PropertyGroupDao pgDao) {
+    public PropertyGroupResource(PropertyGroupDao pgDao, TagDao tagDao) {
         this.pgDao = checkNotNull(pgDao);
+        this.tagDao = checkNotNull(tagDao);
     }
 
     @POST
     @ApiOperation("Creates a PropertyGroup")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "Created", responseHeaders = @ResponseHeader(name = "location", description = "location of created resource") ) })
+            @ApiResponse(code = 201, message = "Created", responseHeaders = @ResponseHeader(name = "location", description = "location of created resource")) })
     public Response create(@Valid PropertyGroup pg) throws URISyntaxException {
-        if (null != pg.getId()) {
-            throw new WebApplicationException("PropertyGroup already exists.", Status.CONFLICT);
-        }
+        if (null != pg.getId()) { throw new WebApplicationException("PropertyGroup already exists.", Status.CONFLICT); }
 
         return Response.created(new URI("/erector/api/v1/propertygroups/" + pgDao.createPropertyGroup(pg)))
                 .type(MediaType.APPLICATION_JSON).build();
@@ -96,13 +99,12 @@ public class PropertyGroupResource {
             @ApiResponse(code = 400, message = "PropertyGroup is not persisted"),
             @ApiResponse(code = 404, message = "PropertyGroup not found") })
     public Response update(@PathParam("id") Long id, @Valid PropertyGroup pg) {
-        if (null == pg.getId() || !id.equals(pg.getId())) {
-            throw new WebApplicationException("PropertyGroup is not persisted.", Status.BAD_REQUEST);
-        }
+        if (null == pg.getId()
+                || !id.equals(pg.getId())) { throw new WebApplicationException("PropertyGroup is not persisted.",
+                        Status.BAD_REQUEST); }
 
-        if (0 == pgDao.updatePropertyGroup(pg)) {
-            throw new WebApplicationException("PropertyGroup Not Found", Status.NOT_FOUND);
-        }
+        if (0 == pgDao.updatePropertyGroup(
+                pg)) { throw new WebApplicationException("PropertyGroup Not Found", Status.NOT_FOUND); }
 
         return Response.noContent().type(MediaType.APPLICATION_JSON).build();
     }
@@ -113,11 +115,8 @@ public class PropertyGroupResource {
     @ApiResponses({ @ApiResponse(code = 204, message = "Deletion Successfully"),
             @ApiResponse(code = 404, message = "PropertyGroup not found") })
     public Response delete(@PathParam("id") Long id) {
-        if (0 == pgDao.deletePropertyGroup(id)) {
-            throw new WebApplicationException("PropertyGroup Not Found", Status.NOT_FOUND);
-        }
-
-        return Response.noContent().type(MediaType.APPLICATION_JSON).build();
+        pgDao.deletePropertyGroup(id);
+        return Response.ok().type(MediaType.APPLICATION_JSON).build();
     }
 
     @GET
@@ -126,11 +125,55 @@ public class PropertyGroupResource {
     @ApiResponse(code = 404, message = "PropertyGroup not found")
     public PropertyGroup byId(@PathParam("id") Long id) {
         final PropertyGroup pg = pgDao.byId(id);
-        if (null == pg) {
-            throw new NotFoundException("PropertyGroup not found");
-        }
+        if (null == pg) { throw new NotFoundException("PropertyGroup not found"); }
 
         return pg;
+    }
+
+    @POST
+    @Path("/{id}/tags")
+    @ApiOperation("Creates a Tag and associates the Tag to the PropertyGroup")
+    @ApiResponses({
+            @ApiResponse(code = 201, message = "Created", responseHeaders = @ResponseHeader(name = "location", description = "location of all tags for propertygroup")),
+            @ApiResponse(code = 409, message = "if the tag is already persisted") })
+    public Response createTag(@PathParam("id") Long propertyGroupId, @Valid Tag tag) throws URISyntaxException {
+        if (null != tag.getId()) { throw new WebApplicationException("Tag already exists.", Status.CONFLICT); }
+
+        tag.setId(tagDao.addTag(tag.getKey(), tag.getValue()));
+        tagDao.associateTag(tag.getId(), propertyGroupId);
+        return Response.created(new URI("/erector/api/v1/propertygroups/" + propertyGroupId + "/tags"))
+                .type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @DELETE
+    @Path("{propertyGroupId}/tags/{tagId}")
+    @ApiOperation(value = "Deletes an associated Tag")
+    @ApiResponses({ @ApiResponse(code = 204, message = "Deletion Successfully") })
+    public Response deleteTag(@PathParam("propertyGroupId") Long propertyGroupId, @PathParam("tagId") Long tagId) {
+        tagDao.disassociateTag(tagId);
+        tagDao.removeTag(tagId);
+        return Response.noContent().type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @Path("/{id}/tags")
+    @ApiOperation("Retrieves all Tags for the PropertyGroup")
+    @ApiResponses({ @ApiResponse(code = 404, message = "PropertyGroup not found") })
+    public Collection<Tag> tags(@PathParam("id") Long propertyGroupId) {
+        return tagDao.byPropertyGroupId(byId(propertyGroupId).getId());
+    }
+
+    @DELETE
+    @Path("{propertyGroupId}/tags")
+    @ApiOperation(value = "Deletes an associated Tag")
+    @ApiResponses({ @ApiResponse(code = 204, message = "Deletion Successfully") })
+    public Response removeAllTags(@PathParam("propertyGroupId") Long propertyGroupId) {
+        final Set<Long> tagIds = tags(propertyGroupId).parallelStream().map(t -> {
+            return t.getId();
+        }).collect(Collectors.toSet());
+        tagDao.disassociateTags(tagIds);
+        tagDao.removeTags(tagIds);
+        return Response.noContent().type(MediaType.APPLICATION_JSON).build();
     }
 
     @GET

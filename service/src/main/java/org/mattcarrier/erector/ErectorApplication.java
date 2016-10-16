@@ -93,7 +93,8 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
         }
 
         configuration.getPersistence().initialize(env);
-        env.jersey().register(new PropertyGroupResource(configuration.getPersistence().propertyGroupDao()));
+        env.jersey().register(new PropertyGroupResource(configuration.getPersistence().propertyGroupDao(),
+                configuration.getPersistence().tagDao()));
         env.jersey().register(new PropertyResource(configuration.getPersistence().propertyDao()));
         env.jersey().register(new TagResource(configuration.getPersistence().tagDao()));
     }
@@ -101,15 +102,11 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Optional<DataSourceFactory> dsFactory(ErectorConfiguration configuration) {
         final PersistenceFactory persistence = configuration.getPersistence();
-        if (!(persistence instanceof DatabaseConfiguration)) {
-            return Optional.absent();
-        }
+        if (!(persistence instanceof DatabaseConfiguration)) { return Optional.absent(); }
 
         final PooledDataSourceFactory dsFactory = ((DatabaseConfiguration) persistence)
                 .getDataSourceFactory(configuration);
-        if (dsFactory instanceof DataSourceFactory) {
-            return Optional.of((DataSourceFactory) dsFactory);
-        }
+        if (dsFactory instanceof DataSourceFactory) { return Optional.of((DataSourceFactory) dsFactory); }
 
         return Optional
                 .of((DataSourceFactory) ((DatabaseConfiguration) persistence).getDataSourceFactory(configuration));
@@ -118,9 +115,7 @@ public class ErectorApplication extends Application<ErectorConfiguration> {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Optional<FlywayFactory> flywayFactory(ErectorConfiguration configuration) {
         final PersistenceFactory persistence = configuration.getPersistence();
-        if (!(persistence instanceof FlywayConfiguration)) {
-            return Optional.absent();
-        }
+        if (!(persistence instanceof FlywayConfiguration)) { return Optional.absent(); }
 
         return Optional.of((FlywayFactory) ((FlywayConfiguration) persistence).getFlywayFactory(configuration));
     }

@@ -26,9 +26,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import javax.validation.Valid;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -38,6 +40,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.mattcarrier.erector.dao.TagDao;
+import org.mattcarrier.erector.domain.Tag;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -54,6 +57,13 @@ public class TagResource {
         this.tagDao = checkNotNull(tagDao);
     }
 
+    @GET
+    @Path("/domain")
+    @ApiOperation(value = "Lists the tag domain")
+    public List<String> tagDomain() {
+        return tagDao.getTagDomain().getDomain();
+    }
+
     @POST
     @Path("/domain/{tagName}")
     @ApiOperation(value = "Add a new entry into the tag domain")
@@ -61,20 +71,12 @@ public class TagResource {
     public List<String> addTagDomain(@PathParam("tagName") String tagName) {
         final List<String> domain = tagDomain();
         for (String t : domain) {
-            if (t.toLowerCase().equals(tagName.toLowerCase())) {
-                throw new WebApplicationException(tagName + " is already part of the domain", Status.CONFLICT);
-            }
+            if (t.toLowerCase().equals(tagName.toLowerCase())) { throw new WebApplicationException(
+                    tagName + " is already part of the domain", Status.CONFLICT); }
         }
 
         tagDao.createTagDomain(tagName);
         return tagDomain();
-    }
-
-    @GET
-    @Path("/domain")
-    @ApiOperation(value = "Lists the tag domain")
-    public List<String> tagDomain() {
-        return tagDao.getTagDomain().getDomain();
     }
 
     @DELETE
@@ -83,5 +85,19 @@ public class TagResource {
     public Response removeTagDomain(@PathParam("tagName") String tagName) {
         tagDao.deleteTagDomain(tagName);
         return Response.ok().type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @PUT
+    @Path("/{id}")
+    @ApiOperation(value = "Updates a Tag", notes = "Tag must already be created")
+    @ApiResponses({ @ApiResponse(code = 204, message = "Updated Successfully"),
+            @ApiResponse(code = 400, message = "Tag is not persisted"),
+            @ApiResponse(code = 404, message = "Tag not found") })
+    public Response update(@PathParam("id") Long id, @Valid Tag tag) {
+        if (null == tag.getId() || !id.equals(tag.getId())) { throw new WebApplicationException("Tag is not persisted.",
+                Status.BAD_REQUEST); }
+
+        if (0 == tagDao.update(tag)) { throw new WebApplicationException("Tag Not Found", Status.NOT_FOUND); }
+        return Response.noContent().type(MediaType.APPLICATION_JSON).build();
     }
 }

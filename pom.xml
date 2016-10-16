@@ -134,6 +134,7 @@
           <excludes>
             <exclude>**/README</exclude>
             <exclude>**/LICENSE</exclude>
+            <exclude>eclipse-formatter.xml</exclude>
           </excludes>
         </configuration>
         <executions>

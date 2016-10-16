@@ -28,6 +28,7 @@ import org.mattcarrier.erector.dao.mapper.TagDomainMapper;
 import org.mattcarrier.erector.dao.mapper.TagMapper;
 import org.mattcarrier.erector.domain.Tag;
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
@@ -45,6 +46,9 @@ public interface TagDao {
     @SqlUpdate("ALTER TABLE Tag DROP COLUMN <key>")
     public void deleteTagDomain(@Define("key") String key);
 
+    @SqlQuery("SELECT * FROM Tag WHERE doNotDelete = '1' LIMIT 1")
+    public TagDomain getTagDomain();
+
     @SqlUpdate("INSERT INTO Tag(<key>) VALUES(:value)")
     @GetGeneratedKeys
     public long addTag(@Define("key") String key, @Bind("value") String value);
@@ -60,20 +64,20 @@ public interface TagDao {
     public int removeTag(@Bind("id") Long id);
 
     @SqlUpdate("DELETE FROM TagPropertyGroupXref WHERE tagId IN (<tagIds>)")
-    public int disassociateAllTags(@BindIn("tagIds") Collection<Long> tagIds);
+    public int disassociateTags(@BindIn("tagIds") Collection<Long> tagIds);
 
     @SqlUpdate("DELETE FROM Tag WHERE id IN (<tagIds>)")
-    public int removeAllTags(@BindIn("tagIds") Collection<Long> tagIds);
+    public int removeTags(@BindIn("tagIds") Collection<Long> tagIds);
 
-    @SqlQuery("SELECT * FROM Tag WHERE doNotDelete = '1' LIMIT 1")
-    public TagDomain getTagDomain();
+    @SqlUpdate("UPDATE Tag SET value = :value WHERE id = :id")
+    public int update(@BindBean Tag tag);
 
     @SqlQuery("SELECT * FROM Tag WHERE id = :id")
     public Tag byId(@Bind("id") Long id);
 
 //@formatter:off
     @SqlQuery("SELECT " +
-                "t.*, " +
+                "t.* " +
               "FROM " +
                 "Tag t INNER JOIN " +
                 "TagPropertyGroupXref x ON t.Id = x.tagId " +
